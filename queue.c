@@ -17,7 +17,9 @@
 
 /***** Local Variables *****/
 static int initialized = 0;
-static int size = 0;
+static int head_idx = 0;
+static int tail_idx = 0;
+static queue_data_t queue[MAX_QUEUE_SIZE + 1];
 
 /***** Function Prototypes *****/
 
@@ -28,7 +30,9 @@ static int size = 0;
  */
 void queue_init( void )
 {
-  size = 0;
+  // Reset head and tail pointers.
+  head_idx = 0;
+  tail_idx = 0;
 
   // Set internal flag that list is initialized.
   initialized = 1;
@@ -39,7 +43,9 @@ void queue_init( void )
  */
 void queue_deinit( void )
 {
-  size = 0;
+  // Reset head and tail pointers.
+  head_idx = 0;
+  tail_idx = 0;
 
   // Clear internal flag that list is initialized.
   initialized = 0;
@@ -60,7 +66,7 @@ int queue_initialized( void )
  */
 int queue_empty( void )
 {
-  return ( size == 0 );
+  return ( head_idx == tail_idx );
 }
 
 /**
@@ -69,6 +75,17 @@ int queue_empty( void )
  */
 int queue_size( void )
 {
+  int size = 0;
+
+  if ( head_idx <= tail_idx )
+  {
+    size = tail_idx - head_idx;
+  }
+  else
+  {
+    size = ( MAX_QUEUE_SIZE - head_idx ) + tail_idx;
+  }
+
   return size;
 }
 
