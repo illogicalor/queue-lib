@@ -14,12 +14,13 @@
 /***** Error checking *****/
 
 /***** Definitions *****/
+#define QUEUE_BUF_SIZE    ( MAX_QUEUE_ELEMENTS + 1 )
 
 /***** Local Variables *****/
 static int initialized = 0;
 static int head_idx = 0;
 static int tail_idx = 0;
-static queue_data_t queue[MAX_QUEUE_SIZE + 1];
+static queue_data_t q_buf[QUEUE_BUF_SIZE];
 
 /***** Function Prototypes *****/
 
@@ -83,7 +84,7 @@ int queue_size( void )
   }
   else
   {
-    size = ( MAX_QUEUE_SIZE - head_idx ) + tail_idx;
+    size = ( QUEUE_BUF_SIZE - head_idx ) + tail_idx;
   }
 
   return size;
@@ -95,34 +96,65 @@ int queue_size( void )
  */
 int queue_max_size( void )
 {
-  return MAX_QUEUE_SIZE;
+  return MAX_QUEUE_ELEMENTS;
 }
 
 /**
  *  @brief  Access the next element.
- *  @return The next element in the queue.
+ *  @return Pointer to the next element in the queue.
  */
-queue_data_t queue_front( void )
+queue_data_t *queue_front( void )
 {
+  if ( !queue_empty() )
+  {
+    return &q_buf[head_idx];
+  }
 
+  return NULL;
 }
 
 /**
  *  @brief  Access the last element in the queue.
- *  @return The last element in the queue.
+ *  @return Pointer to the last element in the queue.
  */
-queue_data_t queue_back( void )
+queue_data_t *queue_back( void )
 {
+  if ( !queue_empty() )
+  {
+    if ( tail_idx == 0 )
+    {
+      return &q_buf[MAX_QUEUE_ELEMENTS];
+    }
+    else
+    {
+      return &q_buf[tail_idx - 1];
+    }
+  }
 
+  return NULL;
 }
 
 /**
  *  @brief  Insert element into the queue.
  *  @param  val - element to be inserted.
+ *  @return 1 if push was successful. 0 otherwise.
  */
-void queue_push( queue_data_t val )
+int queue_push( queue_data_t val )
 {
-
+  if ( head_idx <= tail_idx )
+  {
+    q_buf[tail_idx] = val;
+    tail_idx = ( tail_idx + 1 ) % QUEUE_BUF_SIZE;
+    return 1;
+  }
+  else if ( tail_idx + 1 < head_idx )
+  {
+    q_buf[tail_idx] = val;
+    tail_idx++;
+    return 1;
+  }
+  
+  return 0;
 }
 
 /**
@@ -130,8 +162,61 @@ void queue_push( queue_data_t val )
  */
 void queue_pop( void )
 {
-
+  if ( !queue_empty() )
+  {
+    head_idx = ( head_idx + 1 ) % QUEUE_BUF_SIZE;
+  }
 }
+
+#if ( defined QUEUE_DEBUG_EN && QUEUE_DEBUG_EN > 0 )
+#include <stdio.h>
+/**
+ *  @brief  Prints the queue contents.
+ *  @param  Function pointer to printing a single queue element.
+ */
+void queue_print( void (*fn_print)(queue_data_t *element) )
+{
+  int i = head_idx;
+
+  printf( "Queue (size %d)\n", queue_size() );
+  while ( i != tail_idx )
+  {
+    printf( "[" );
+    fn_print( &q_buf[i] );
+    printf( "]" );
+
+    // Increment index
+    i = ( i + 1 ) % QUEUE_BUF_SIZE;
+  }
+  puts("");
+}
+
+/**
+ *  @brief  Prints the queue buffer (including unused data).
+ *  @param  Function pointer to printing a single queue element.
+ */
+void queue_print_buf( void (*fn_print)(queue_data_t *element) )
+{
+  int i;
+  printf( "Queue buf\n" );
+  for ( i = 0; i < QUEUE_BUF_SIZE; i++ )
+  {
+    printf( "[" );
+    if ( i == head_idx )
+    {
+      printf( "{h}" );
+    }
+    if ( i == tail_idx )
+    {
+      printf( "{t}" );
+    }
+
+    fn_print( &q_buf[i] );
+    printf( "]" );
+  }
+  puts("");
+}
+#endif /* QUEUE_DEBUG_EN */
 
 /***** Private Functions *****/
 

@@ -15,9 +15,14 @@
 
 /***** Definitions *****/
 //
-// Configure the maximum size of the queue
+// Configure the maximum elements allowed in the queue.
 //
-#define MAX_QUEUE_SIZE      32
+#define MAX_QUEUE_ELEMENTS  32
+
+//
+// Enable debug functions.
+//
+#define QUEUE_DEBUG_EN      1
 
 //
 // Queue element data structure. This must be defined!
@@ -49,14 +54,24 @@ int queue_max_size( void );
 //
 // Element access
 //
-queue_data_t queue_front( void );
-queue_data_t queue_back( void );
+queue_data_t *queue_front( void );
+queue_data_t *queue_back( void );
 
 //
 // Modifiers
 //
-void queue_push( queue_data_t val );
+int queue_push( queue_data_t val );
 void queue_pop( void );
+
+#if ( defined QUEUE_DEBUG_EN && QUEUE_DEBUG_EN > 0 )
+//
+// Debug
+//
+void queue_print( void (*fn_print)(queue_data_t *element) );
+void queue_print_buf( void (*fn_print)(queue_data_t *element) );
+#else
+#define queue_print( fnptr )
+#endif /* QUEUE_DEBUG_EN */
 
 #endif /* __QUEUE_H__ */
 
